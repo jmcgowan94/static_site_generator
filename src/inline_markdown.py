@@ -1,3 +1,4 @@
+import re
 from textnode import TextNode, TextType
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
@@ -20,3 +21,31 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                     else:
                         raise Exception(f"Unknown delimiter: {delimiter}")
     return new_nodes
+
+def extract_markdown_images(text):
+    tuple_list = []
+    alt_texts = re.findall(r"\[(.*?)\]", text)
+    urls = re.findall(r"\((.*?)\)", text)
+
+    if len(alt_texts) != len(urls):
+        raise Exception("Uneven number of alt texts and urls!")
+
+    for i in range(len(alt_texts)):
+        tuple_to_add = (alt_texts[i], urls[i])
+        tuple_list.append(tuple_to_add)
+
+    return tuple_list
+
+def extract_markdown_links(text):
+    tuple_list = []
+    anchors = re.findall(r"\[(.*?)\]", text)
+    urls = re.findall(r"\((.*?)\)", text)
+
+    if len(anchors) != len(urls):
+        raise Exception("Uneven number of anchors and urls!")
+
+    for i in range(len(anchors)):
+        tuple_to_add = (anchors[i], urls[i])
+        tuple_list.append(tuple_to_add)
+
+    return tuple_list
