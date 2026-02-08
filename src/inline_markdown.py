@@ -22,6 +22,38 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                         raise Exception(f"Unknown delimiter: {delimiter}")
     return new_nodes
 
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        text_list = node.text.split("[")
+        for text in text_list:
+            if "]" not in text:
+                new_nodes.append(TextNode(text[:-1], TextType.TEXT))
+            else:
+                image = text[:text.index("]")]
+                url = text[text.index("(")+1:text.index(")")]
+                remaining_text = text[text.index(")")+1:].replace("!", "")
+                new_nodes.append(TextNode(image, TextType.IMAGE, url))
+                if len(remaining_text) > 0:
+                    new_nodes.append(TextNode(remaining_text, TextType.TEXT))
+    return new_nodes
+
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        text_list = node.text.split("[")
+        for text in text_list:
+            if "]" not in text:
+                new_nodes.append(TextNode(text, TextType.TEXT))
+            else:
+                image = text[:text.index("]")]
+                url = text[text.index("(")+1:text.index(")")]
+                remaining_text = text[text.index(")")+1:]
+                new_nodes.append(TextNode(image, TextType.LINK, url))
+                if len(remaining_text) > 0:
+                    new_nodes.append(TextNode(remaining_text, TextType.TEXT))
+    return new_nodes
+
 def extract_markdown_images(text):
     tuple_list = []
     alt_texts = re.findall(r"\[(.*?)\]", text)
@@ -49,3 +81,4 @@ def extract_markdown_links(text):
         tuple_list.append(tuple_to_add)
 
     return tuple_list
+
