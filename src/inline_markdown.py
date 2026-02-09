@@ -25,34 +25,51 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 def split_nodes_image(old_nodes):
     new_nodes = []
     for node in old_nodes:
-        text_list = node.text.split("[")
-        for text in text_list:
-            if "]" not in text:
-                new_nodes.append(TextNode(text[:-1], TextType.TEXT))
-            else:
-                image = text[:text.index("]")]
-                url = text[text.index("(")+1:text.index(")")]
-                remaining_text = text[text.index(")")+1:].replace("!", "")
-                new_nodes.append(TextNode(image, TextType.IMAGE, url))
-                if len(remaining_text) > 0:
-                    new_nodes.append(TextNode(remaining_text, TextType.TEXT))
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(node)
+        else:
+            text_list = node.text.split("!")
+            for text in text_list:
+                if "[" not in text:
+                    new_nodes.append(TextNode(text, TextType.TEXT))
+                else:
+                    image = text[1:text.index("]")]
+                    url = text[text.index("(")+1:text.index(")")]
+                    remaining_text = text[text.index(")")+1:].replace("!", "")
+                    new_nodes.append(TextNode(image, TextType.IMAGE, url))
+                    if len(remaining_text) > 0:
+                        new_nodes.append(TextNode(remaining_text, TextType.TEXT))
     return new_nodes
 
 def split_nodes_link(old_nodes):
     new_nodes = []
     for node in old_nodes:
-        text_list = node.text.split("[")
-        for text in text_list:
-            if "]" not in text:
-                new_nodes.append(TextNode(text, TextType.TEXT))
-            else:
-                image = text[:text.index("]")]
-                url = text[text.index("(")+1:text.index(")")]
-                remaining_text = text[text.index(")")+1:]
-                new_nodes.append(TextNode(image, TextType.LINK, url))
-                if len(remaining_text) > 0:
-                    new_nodes.append(TextNode(remaining_text, TextType.TEXT))
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(node)
+        else:
+            text_list = node.text.split("[")
+            for text in text_list:
+                if "]" not in text:
+                    new_nodes.append(TextNode(text, TextType.TEXT))
+                else:
+                    image = text[:text.index("]")]
+                    url = text[text.index("(")+1:text.index(")")]
+                    remaining_text = text[text.index(")")+1:]
+                    new_nodes.append(TextNode(image, TextType.LINK, url))
+                    if len(remaining_text) > 0:
+                        new_nodes.append(TextNode(remaining_text, TextType.TEXT))
     return new_nodes
+
+def text_to_textnodes(text):
+    old_nodes = [TextNode(text, TextType.TEXT)]
+    parsed_bold = split_nodes_delimiter(old_nodes, "**", TextType.TEXT)
+    parsed_italic = split_nodes_delimiter(parsed_bold, "_", TextType.ITALIC)
+    parsed_code = split_nodes_delimiter(parsed_italic, "`", TextType.TEXT)
+    parsed_images = split_nodes_image(parsed_code)
+    parsed_links = split_nodes_link(parsed_images)
+    final_nodes = parsed_links
+    return final_nodes
+
 
 def extract_markdown_images(text):
     tuple_list = []
