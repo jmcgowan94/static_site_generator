@@ -6,20 +6,14 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
             new_nodes.append(node)
-        else:
-            text_list = node.text.split(delimiter)
-            for i in range(len(text_list)):
-                if i % 2 == 0:
-                    new_nodes.append(TextNode(text_list[i], TextType.TEXT))
-                else:
-                    if delimiter == "**":
-                        new_nodes.append(TextNode(text_list[i], TextType.BOLD))
-                    elif delimiter == "_":
-                        new_nodes.append(TextNode(text_list[i], TextType.ITALIC))
-                    elif delimiter == "`":
-                        new_nodes.append(TextNode(text_list[i], TextType.CODE))
-                    else:
-                        raise Exception(f"Unknown delimiter: {delimiter}")
+            continue
+        text_list = node.text.split(delimiter)
+        for i in range(len(text_list)):
+            if i % 2 == 0:
+                new_nodes.append(TextNode(text_list[i], TextType.TEXT))
+            else:
+                new_nodes.append(TextNode(text_list[i], text_type))
+            
     return new_nodes
 
 def split_nodes_image(old_nodes):
@@ -62,9 +56,9 @@ def split_nodes_link(old_nodes):
 
 def text_to_textnodes(text):
     old_nodes = [TextNode(text, TextType.TEXT)]
-    parsed_bold = split_nodes_delimiter(old_nodes, "**", TextType.TEXT)
+    parsed_bold = split_nodes_delimiter(old_nodes, "**", TextType.BOLD)
     parsed_italic = split_nodes_delimiter(parsed_bold, "_", TextType.ITALIC)
-    parsed_code = split_nodes_delimiter(parsed_italic, "`", TextType.TEXT)
+    parsed_code = split_nodes_delimiter(parsed_italic, "`", TextType.CODE)
     parsed_images = split_nodes_image(parsed_code)
     parsed_links = split_nodes_link(parsed_images)
     final_nodes = parsed_links
@@ -98,4 +92,3 @@ def extract_markdown_links(text):
         tuple_list.append(tuple_to_add)
 
     return tuple_list
-
