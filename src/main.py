@@ -1,10 +1,7 @@
-from textnode import TextNode
+from copystatic import move_files
 
 def main():
-    text_node = TextNode("Test text", "link", "https://www.youtube.com")
-
-    print(text_node)
-
+    move_files("static", "public")
 
 
 main()
