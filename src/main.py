@@ -8,5 +8,4 @@ def main():
     if len(sys.argv) > 1:
         basepath = sys.argv[1]
     generate_page_recursive("content", "template.html", "docs", basepath)
-
 main()
