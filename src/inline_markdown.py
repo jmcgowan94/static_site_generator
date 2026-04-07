@@ -21,18 +21,20 @@ def split_nodes_image(old_nodes):
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
             new_nodes.append(node)
-        else:
-            text_list = node.text.split("!")
-            for text in text_list:
-                if "[" not in text:
-                    new_nodes.append(TextNode(text, TextType.TEXT))
-                else:
-                    image = text[1:text.index("]")]
-                    url = text[text.index("(")+1:text.index(")")]
-                    remaining_text = text[text.index(")")+1:].replace("!", "")
-                    new_nodes.append(TextNode(image, TextType.IMAGE, url))
-                    if len(remaining_text) > 0:
-                        new_nodes.append(TextNode(remaining_text, TextType.TEXT))
+            continue
+        text = node.text
+        matches = re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+        if not matches:
+            new_nodes.append(node)
+            continue
+        for alt, url in matches:
+            sections = text.split(f"![{alt}]({url})", 1)
+            if sections[0]:
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(alt, TextType.IMAGE, url))
+            text = sections[1]
+        if text:
+            new_nodes.append(TextNode(text, TextType.TEXT))
     return new_nodes
 
 def split_nodes_link(old_nodes):
@@ -40,18 +42,20 @@ def split_nodes_link(old_nodes):
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
             new_nodes.append(node)
-        else:
-            text_list = node.text.split("[")
-            for text in text_list:
-                if "]" not in text:
-                    new_nodes.append(TextNode(text, TextType.TEXT))
-                else:
-                    image = text[:text.index("]")]
-                    url = text[text.index("(")+1:text.index(")")]
-                    remaining_text = text[text.index(")")+1:]
-                    new_nodes.append(TextNode(image, TextType.LINK, url))
-                    if len(remaining_text) > 0:
-                        new_nodes.append(TextNode(remaining_text, TextType.TEXT))
+            continue
+        text = node.text
+        matches = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+        if not matches:
+            new_nodes.append(node)
+            continue
+        for anchor, url in matches:
+            sections = text.split(f"[{anchor}]({url})", 1)
+            if sections[0]:
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(anchor, TextType.LINK, url))
+            text = sections[1]
+        if text:
+            new_nodes.append(TextNode(text, TextType.TEXT))
     return new_nodes
 
 def text_to_textnodes(text):
